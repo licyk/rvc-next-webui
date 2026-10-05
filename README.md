@@ -65,6 +65,8 @@ cd rvc-next-webui
 | `--access-token <令牌>` | 访问令牌 |
 | `--api-prefix <路径>` | 将 API 和 WebUI 挂载到指定路径下, 如 `/voice` |
 | `--no-browser` | 启动后不自动打开浏览器 |
+| `--proxy <地址>` | 手动指定代理地址, 如 `http://127.0.0.1:7890` (默认自动读取系统代理) |
+| `--disable-proxy` | 禁用自动设置代理 |
 | `--skip-check` | 跳过运行环境的依赖检查 |
 | `--torch-backend <类型>` | 安装 PyTorch 时使用的类型: `auto` (默认), `cuda`, `rocm`, `xpu`, `mps`, `cpu` |
 | `--reinstall-torch` | 重新安装 PyTorch, 可与 `--torch-backend` 一起使用 |
@@ -81,6 +83,10 @@ cd rvc-next-webui
 **NVIDIA 显卡使用了 CPU 版本的 PyTorch**
 
 CUDA 13.0 版本的 PyTorch 需要 580 及以上版本的显卡驱动, 驱动过旧时会依次回退到 CUDA 12.8 / 12.6 版本, 更旧的驱动只能使用 CPU 版本。更新显卡驱动后使用 `--reinstall-torch` 重新安装 PyTorch。
+
+**代理设置**
+
+启动时会在检查依赖前自动设置代理: 使用 `--proxy` 指定的代理; 未指定时使用环境变量 `HTTP_PROXY` / `HTTPS_PROXY` 中已有的代理; 都没有时读取系统代理 (Windows 系统设置, Linux 的 GNOME / KDE 设置, macOS 系统设置), 能连接到代理服务器时才会使用。系统代理为 SOCKS 代理时不会自动使用, 请使用 `--proxy` 指定 HTTP 代理。不需要代理时使用 `--disable-proxy` 禁用。
 
 **Linux 上无法使用实时变声**
 

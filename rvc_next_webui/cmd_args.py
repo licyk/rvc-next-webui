@@ -42,6 +42,10 @@ def get_args_parser() -> argparse.ArgumentParser:
     server.add_argument("--api-prefix", type=str, default=None, help="将 API 和 WebUI 挂载到指定路径下, 如 /voice")
     server.add_argument("--no-browser", action="store_true", help="启动后不自动打开浏览器")
 
+    proxy = parser.add_argument_group("代理")
+    proxy.add_argument("--proxy", type=str, default=None, help="手动指定代理地址, 如 http://127.0.0.1:7890 (默认自动读取系统代理)")
+    proxy.add_argument("--disable-proxy", action="store_true", help="禁用自动设置代理")
+
     env = parser.add_argument_group("运行环境")
     env.add_argument("--skip-check", action="store_true", help="跳过运行环境的依赖检查")
     env.add_argument(

@@ -15,6 +15,7 @@ from rvc_next_webui.config import (
 )
 from rvc_next_webui.env_check import check_environment
 from rvc_next_webui.logger import get_logger
+from rvc_next_webui.proxy import configure_proxy
 from rvc_next_webui.version import VERSION
 
 logger = get_logger(
@@ -107,6 +108,9 @@ def main() -> None:
         logging.getLogger(LOGGER_NAME).setLevel(logging.DEBUG)
 
     logger.info("初始化 RVC Next WebUI")
+    # 依赖检查和 RVC Next 都会访问网络, 需要最先配置代理
+    configure_proxy(proxy=args.proxy, disable=args.disable_proxy)
+
     if args.skip_check:
         logger.info("跳过运行环境检查")
     else:
