@@ -8,8 +8,10 @@ _[RVC Next](https://github.com/licyk/rvc-next) 一键启动器_
 
 - [简介](#简介)
 - [安装](#安装)
-  - [准备](#准备)
-  - [下载并启动](#下载并启动)
+  - [方式一: 整合包安装 (仅支持 Windows)](#方式一-整合包安装-仅支持-windows)
+  - [方式二: 手动安装 (支持全平台)](#方式二-手动安装-支持全平台)
+    - [准备](#准备)
+    - [下载并启动](#下载并启动)
 - [启动参数](#启动参数)
 - [常见问题](#常见问题)
 - [许可证](#许可证)
@@ -26,14 +28,27 @@ RVC Next WebUI 会自动完成 RVC Next 的运行环境配置并启动 WebUI:
 
 ## 安装
 
-### 准备
+### 方式一: 整合包安装 (仅支持 Windows)
+
+此方式仅支持 Windows, 下载整合包并解压后即可按照整合包说明使用。
+
+1. 打开 [SD WebUI All In One 项目](https://github.com/licyk/sd-webui-all-in-one)的 README, 找到并点击 **SD WebUI All In One 文档** 链接。
+2. 在文档中依次点击 **整合包与实用指南** → **整合包下载与使用**。
+3. 在该页面中找到 **RVC Next WebUI** 的说明。
+4. 点击 RVC Next WebUI 说明中的整合包下载按钮, 下载整合包并解压, 然后按照该说明启动和使用。
+
+### 方式二: 手动安装 (支持全平台)
+
+此方式支持 Windows、Linux 和 macOS。
+
+#### 准备
 
 安装以下软件:
 
 - [Git](https://git-scm.com/downloads)
 - [Python](https://www.python.org/downloads/) 3.10 及以上版本 (Windows 上安装时勾选 `Add python.exe to PATH`)
 
-### 下载并启动
+#### 下载并启动
 
 使用 Git 下载项目:
 
