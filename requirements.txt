@@ -1,1 +1,1 @@
-rvc-next>=0.2.1
+rvc-next[effects,tts]>=0.2.2
