@@ -2,7 +2,7 @@
 
 使用 gradio-tunneling 库通过 Gradio 的共享服务器生成公网访问地址 (https://xxx.gradio.live), 有效期为 72 小时.
 
-隧道转发的请求会保留公网地址的 Host 请求头, 需要通过 ``RvcNextServer.allow_host()`` 允许该地址, 且必须设置访问令牌.
+隧道转发的请求会保留公网地址的 Host 请求头, 需要通过 ``RvcNextServer.allow_host()`` 允许该地址.
 gradio-tunneling 由依赖检查安装, 本模块需要在依赖检查完成后才能导入.
 """
 
@@ -26,16 +26,6 @@ logger = get_logger(
 
 GRADIO_API_TIMEOUT = 10
 """请求 Gradio API 服务器的超时时间 (秒)"""
-
-
-def generate_access_token() -> str:
-    """生成随机访问令牌
-
-    Returns:
-        str:
-            访问令牌
-    """
-    return secrets.token_urlsafe(16)
 
 
 class GradioTunnel:

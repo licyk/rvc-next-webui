@@ -69,16 +69,10 @@ def launch_rvc_next(
     from rvc_next.logger import setup_logging
     from rvc_next.version import VERSION as RVC_NEXT_VERSION
 
-    from rvc_next_webui.tunnel import GradioTunnel, generate_access_token
+    from rvc_next_webui.tunnel import GradioTunnel
 
     setup_logging(logging.DEBUG if args.debug else None)
     logger.info("RVC Next 版本: %s, 数据目录: %s", RVC_NEXT_VERSION, data_dir)
-
-    access_token = args.access_token
-    if args.share and access_token is None:
-        # 任何拿到公网地址的人都能访问服务器, RVC Next 要求允许公网地址时必须设置访问令牌
-        access_token = generate_access_token()
-        logger.info("已启用内网穿透, 自动生成访问令牌: %s", access_token)
 
     server = RvcNextServer(
         data_dir=data_dir,
@@ -88,7 +82,7 @@ def launch_rvc_next(
         strict_port=args.strict_port,
         api_prefix=args.api_prefix,
         open_browser=not args.no_browser,
-        access_token=access_token,
+        access_token=args.access_token,
         log_level="debug" if args.debug else "warning",
     )
     try:
@@ -112,7 +106,9 @@ def launch_rvc_next(
             server.allow_host(tunnel_url)
             # 公网地址需要带上 --api-prefix 指定的路径
             share_url = f"{tunnel_url}{urlsplit(server.url).path}"
-            logger.info("Gradio 内网穿透地址: %s (有效期 72 小时, 访问时需要输入访问令牌)", share_url)
+            logger.info("Gradio 内网穿透地址: %s (有效期 72 小时)", share_url)
+            if args.access_token is None:
+                logger.warning("任何拿到公网地址的人都可以访问 RVC Next WebUI, 如需限制访问请设置 --access-token")
 
     logger.info("按 Ctrl+C 停止 RVC Next WebUI")
     # 嵌入模式下 uvicorn 运行在子线程中, 不会处理 SIGTERM, 转为 Ctrl+C 使服务器正常停止

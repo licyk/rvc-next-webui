@@ -29,7 +29,7 @@ def get_args_parser() -> argparse.ArgumentParser:
         "--host",
         type=str,
         default=DEFAULT_SERVER_HOST,
-        help=f"监听地址 (默认为 {DEFAULT_SERVER_HOST}), 非本机地址需要同时设置 --access-token",
+        help=f"监听地址 (默认为 {DEFAULT_SERVER_HOST}), 设为 0.0.0.0 等非本机地址时可被其他设备访问",
     )
     server.add_argument(
         "--port",
@@ -38,13 +38,13 @@ def get_args_parser() -> argparse.ArgumentParser:
         help=f"监听端口 (默认为 {DEFAULT_SERVER_PORT}, 0 为任意空闲端口), 端口被占用时尝试下一个端口",
     )
     server.add_argument("--strict-port", action="store_true", help="端口被占用时直接退出, 不尝试下一个端口")
-    server.add_argument("--access-token", type=str, default=None, help="访问令牌, 监听非本机地址时必须设置")
+    server.add_argument("--access-token", type=str, default=None, help="访问令牌 (可选), 设置后访问 WebUI 时需要输入")
     server.add_argument("--api-prefix", type=str, default=None, help="将 API 和 WebUI 挂载到指定路径下, 如 /voice")
     server.add_argument("--no-browser", action="store_true", help="启动后不自动打开浏览器")
     server.add_argument(
         "--share",
         action="store_true",
-        help="使用 Gradio 内网穿透生成公网访问地址 (有效期 72 小时), 未设置 --access-token 时自动生成访问令牌",
+        help="使用 Gradio 内网穿透生成公网访问地址 (有效期 72 小时)",
     )
 
     proxy = parser.add_argument_group("代理")
