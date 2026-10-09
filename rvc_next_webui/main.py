@@ -17,7 +17,6 @@ from rvc_next_webui.config import (
 from rvc_next_webui.env_check import check_environment
 from rvc_next_webui.logger import get_logger
 from rvc_next_webui.proxy import configure_proxy
-from rvc_next_webui.tunnel import GradioTunnel, allow_extra_hosts, generate_access_token
 from rvc_next_webui.version import VERSION
 
 logger = get_logger(
@@ -70,17 +69,16 @@ def launch_rvc_next(
     from rvc_next.logger import setup_logging
     from rvc_next.version import VERSION as RVC_NEXT_VERSION
 
+    from rvc_next_webui.tunnel import GradioTunnel, generate_access_token
+
     setup_logging(logging.DEBUG if args.debug else None)
     logger.info("RVC Next 版本: %s, 数据目录: %s", RVC_NEXT_VERSION, data_dir)
 
     access_token = args.access_token
-    share_hosts: set[str] = set()
-    if args.share:
-        # 隧道转发的请求来自 127.0.0.1, RVC Next 会视为本机请求, 必须使用访问令牌保护公网地址
-        if access_token is None:
-            access_token = generate_access_token()
-            logger.info("已启用内网穿透, 自动生成访问令牌: %s", access_token)
-        share_hosts = allow_extra_hosts()
+    if args.share and access_token is None:
+        # 任何拿到公网地址的人都能访问服务器, RVC Next 要求允许公网地址时必须设置访问令牌
+        access_token = generate_access_token()
+        logger.info("已启用内网穿透, 自动生成访问令牌: %s", access_token)
 
     server = RvcNextServer(
         data_dir=data_dir,
@@ -103,14 +101,15 @@ def launch_rvc_next(
 
     tunnel = None
     if args.share:
-        tunnel = GradioTunnel(port=server.port, index_url=args.index_url)
+        tunnel = GradioTunnel(port=server.port)
         try:
             tunnel_url = tunnel.start()
         except RuntimeError as e:
             logger.error("Gradio 内网穿透启动失败, 仅可通过本地地址访问: %s", e)
             tunnel = None
         else:
-            share_hosts.add(urlsplit(tunnel_url).hostname or tunnel_url)
+            # 隧道转发的请求保留公网地址的 Host 请求头, 需要让 RVC Next 接受该地址
+            server.allow_host(tunnel_url)
             # 公网地址需要带上 --api-prefix 指定的路径
             share_url = f"{tunnel_url}{urlsplit(server.url).path}"
             logger.info("Gradio 内网穿透地址: %s (有效期 72 小时, 访问时需要输入访问令牌)", share_url)
