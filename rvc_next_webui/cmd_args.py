@@ -41,6 +41,11 @@ def get_args_parser() -> argparse.ArgumentParser:
     server.add_argument("--access-token", type=str, default=None, help="访问令牌, 监听非本机地址时必须设置")
     server.add_argument("--api-prefix", type=str, default=None, help="将 API 和 WebUI 挂载到指定路径下, 如 /voice")
     server.add_argument("--no-browser", action="store_true", help="启动后不自动打开浏览器")
+    server.add_argument(
+        "--share",
+        action="store_true",
+        help="使用 Gradio 内网穿透生成公网访问地址 (有效期 72 小时), 未设置 --access-token 时自动生成访问令牌",
+    )
 
     proxy = parser.add_argument_group("代理")
     proxy.add_argument("--proxy", type=str, default=None, help="手动指定代理地址, 如 http://127.0.0.1:7890 (默认自动读取系统代理)")

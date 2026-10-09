@@ -6,6 +6,7 @@ import os
 import signal
 import sys
 from types import FrameType
+from urllib.parse import urlsplit
 
 from rvc_next_webui.cmd_args import get_args_parser
 from rvc_next_webui.config import (
@@ -16,6 +17,7 @@ from rvc_next_webui.config import (
 from rvc_next_webui.env_check import check_environment
 from rvc_next_webui.logger import get_logger
 from rvc_next_webui.proxy import configure_proxy
+from rvc_next_webui.tunnel import GradioTunnel, allow_extra_hosts, generate_access_token
 from rvc_next_webui.version import VERSION
 
 logger = get_logger(
@@ -71,6 +73,15 @@ def launch_rvc_next(
     setup_logging(logging.DEBUG if args.debug else None)
     logger.info("RVC Next 版本: %s, 数据目录: %s", RVC_NEXT_VERSION, data_dir)
 
+    access_token = args.access_token
+    share_hosts: set[str] = set()
+    if args.share:
+        # 隧道转发的请求来自 127.0.0.1, RVC Next 会视为本机请求, 必须使用访问令牌保护公网地址
+        if access_token is None:
+            access_token = generate_access_token()
+            logger.info("已启用内网穿透, 自动生成访问令牌: %s", access_token)
+        share_hosts = allow_extra_hosts()
+
     server = RvcNextServer(
         data_dir=data_dir,
         config_dir=config_dir,
@@ -79,7 +90,7 @@ def launch_rvc_next(
         strict_port=args.strict_port,
         api_prefix=args.api_prefix,
         open_browser=not args.no_browser,
-        access_token=args.access_token,
+        access_token=access_token,
         log_level="debug" if args.debug else "warning",
     )
     try:
@@ -89,11 +100,30 @@ def launch_rvc_next(
         sys.exit(1)
 
     logger.info("RVC Next WebUI 已启动, 访问地址: %s", server.url)
+
+    tunnel = None
+    if args.share:
+        tunnel = GradioTunnel(port=server.port, index_url=args.index_url)
+        try:
+            tunnel_url = tunnel.start()
+        except RuntimeError as e:
+            logger.error("Gradio 内网穿透启动失败, 仅可通过本地地址访问: %s", e)
+            tunnel = None
+        else:
+            share_hosts.add(urlsplit(tunnel_url).hostname or tunnel_url)
+            # 公网地址需要带上 --api-prefix 指定的路径
+            share_url = f"{tunnel_url}{urlsplit(server.url).path}"
+            logger.info("Gradio 内网穿透地址: %s (有效期 72 小时, 访问时需要输入访问令牌)", share_url)
+
     logger.info("按 Ctrl+C 停止 RVC Next WebUI")
     # 嵌入模式下 uvicorn 运行在子线程中, 不会处理 SIGTERM, 转为 Ctrl+C 使服务器正常停止
     signal.signal(signal.SIGTERM, _raise_keyboard_interrupt)
-    # run() 在已启动时不会重复启动, 只负责阻塞并在 Ctrl+C 后停止服务器
-    server.run()
+    try:
+        # run() 在已启动时不会重复启动, 只负责阻塞并在 Ctrl+C 后停止服务器
+        server.run()
+    finally:
+        if tunnel is not None:
+            tunnel.stop()
     logger.info("RVC Next WebUI 已停止")
 
 
