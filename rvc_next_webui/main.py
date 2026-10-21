@@ -6,6 +6,7 @@ import os
 import signal
 import sys
 from types import FrameType
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 from rvc_next_webui.cmd_args import get_args_parser
@@ -14,10 +15,15 @@ from rvc_next_webui.config import (
     LOGGER_LEVEL,
     LOGGER_NAME,
 )
-from rvc_next_webui.env_check import check_environment
+from rvc_next_webui.env_check import check_environment, check_gradio_tunneling
 from rvc_next_webui.logger import get_logger
 from rvc_next_webui.proxy import configure_proxy
 from rvc_next_webui.version import VERSION
+
+if TYPE_CHECKING:
+    from rvc_next import RvcNextServer
+
+    from rvc_next_webui.tunnel import GradioTunnel
 
 logger = get_logger(
     name=LOGGER_NAME,
@@ -45,6 +51,47 @@ def _raise_keyboard_interrupt(
     raise KeyboardInterrupt
 
 
+def start_share(
+    server: "RvcNextServer",
+    args: argparse.Namespace,
+) -> "GradioTunnel | None":
+    """启动 Gradio 内网穿透, gradio-tunneling 未安装时先进行安装
+
+    Args:
+        server (RvcNextServer):
+            已启动的 RVC Next 服务器
+        args (argparse.Namespace):
+            命令行参数
+
+    Returns:
+        GradioTunnel | None:
+            内网穿透实例, 安装或启动失败时返回 None
+    """
+    try:
+        check_gradio_tunneling(index_url=args.index_url)
+        # gradio-tunneling 需要在安装完成后才能导入
+        from rvc_next_webui.tunnel import GradioTunnel
+    except (RuntimeError, ImportError) as e:
+        logger.error("gradio-tunneling 安装失败, 仅可通过本地地址访问: %s", e)
+        return None
+
+    tunnel = GradioTunnel(port=server.port)
+    try:
+        tunnel_url = tunnel.start()
+    except RuntimeError as e:
+        logger.error("Gradio 内网穿透启动失败, 仅可通过本地地址访问: %s", e)
+        return None
+
+    # 隧道转发的请求保留公网地址的 Host 请求头, 需要让 RVC Next 接受该地址
+    server.allow_host(tunnel_url)
+    # 公网地址需要带上 --api-prefix 指定的路径
+    share_url = f"{tunnel_url}{urlsplit(server.url).path}"
+    logger.info("Gradio 内网穿透地址: %s (有效期 72 小时)", share_url)
+    if args.access_token is None:
+        logger.warning("任何拿到公网地址的人都可以访问 RVC Next WebUI, 如需限制访问请设置 --access-token")
+    return tunnel
+
+
 def launch_rvc_next(
     args: argparse.Namespace,
 ) -> None:
@@ -69,8 +116,6 @@ def launch_rvc_next(
     from rvc_next.logger import setup_logging
     from rvc_next.version import VERSION as RVC_NEXT_VERSION
 
-    from rvc_next_webui.tunnel import GradioTunnel
-
     setup_logging(logging.DEBUG if args.debug else None)
     logger.info("RVC Next 版本: %s, 数据目录: %s", RVC_NEXT_VERSION, data_dir)
 
@@ -93,22 +138,7 @@ def launch_rvc_next(
 
     logger.info("RVC Next WebUI 已启动, 访问地址: %s", server.url)
 
-    tunnel = None
-    if args.share:
-        tunnel = GradioTunnel(port=server.port)
-        try:
-            tunnel_url = tunnel.start()
-        except RuntimeError as e:
-            logger.error("Gradio 内网穿透启动失败, 仅可通过本地地址访问: %s", e)
-            tunnel = None
-        else:
-            # 隧道转发的请求保留公网地址的 Host 请求头, 需要让 RVC Next 接受该地址
-            server.allow_host(tunnel_url)
-            # 公网地址需要带上 --api-prefix 指定的路径
-            share_url = f"{tunnel_url}{urlsplit(server.url).path}"
-            logger.info("Gradio 内网穿透地址: %s (有效期 72 小时)", share_url)
-            if args.access_token is None:
-                logger.warning("任何拿到公网地址的人都可以访问 RVC Next WebUI, 如需限制访问请设置 --access-token")
+    tunnel = start_share(server=server, args=args) if args.share else None
 
     logger.info("按 Ctrl+C 停止 RVC Next WebUI")
     # 嵌入模式下 uvicorn 运行在子线程中, 不会处理 SIGTERM, 转为 Ctrl+C 使服务器正常停止

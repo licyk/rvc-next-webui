@@ -12,6 +12,9 @@ license-files = ["LICENSE"]
 dynamic = ["version", "dependencies"]
 authors = [ {name = "licyk"} ]
 
+[project.optional-dependencies]
+share = ["gradio-tunneling>=0.9.1"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["rvc_next_webui*"]

@@ -80,7 +80,7 @@ cd rvc-next-webui
 | `--access-token <令牌>` | 访问令牌 (可选), 设置后访问 WebUI 时需要输入 |
 | `--api-prefix <路径>` | 将 API 和 WebUI 挂载到指定路径下, 如 `/voice` |
 | `--no-browser` | 启动后不自动打开浏览器 |
-| `--share` | 使用 Gradio 内网穿透生成公网访问地址 (有效期 72 小时) |
+| `--share` | 使用 Gradio 内网穿透生成公网访问地址 (有效期 72 小时), 首次使用时自动安装 `gradio-tunneling` (可使用 `--index-url` 指定镜像) |
 | `--proxy <地址>` | 手动指定代理地址, 如 `http://127.0.0.1:7890` (默认自动读取系统代理) |
 | `--disable-proxy` | 禁用自动设置代理 |
 | `--skip-check` | 跳过运行环境的依赖检查 |

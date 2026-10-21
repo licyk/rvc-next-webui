@@ -4,6 +4,8 @@
 
 1. PyTorch: 未安装 (或版本低于 RVC Next 的要求) 时根据显卡类型和系统安装对应的 PyTorch
 2. 项目依赖: 检查 requirements.txt 中的依赖 (包括 rvc-next) 及 rvc-next 自身声明的依赖, 缺失时进行安装
+
+gradio-tunneling 为可选依赖, 不在 requirements.txt 中, 使用 ``--share`` 启动内网穿透时通过 ``check_gradio_tunneling()`` 检查和安装
 """
 
 import importlib
@@ -35,6 +37,9 @@ logger = get_logger(
 
 TORCH_REQUIREMENT = f"torch>={TORCH_MIN_VERSION}"
 """RVC Next 需要的 PyTorch 版本"""
+
+GRADIO_TUNNELING_REQUIREMENT = "gradio-tunneling>=0.9.1"
+"""Gradio 内网穿透需要的 gradio-tunneling 版本"""
 
 
 def pip_install(
@@ -137,6 +142,36 @@ def check_requirements(
     if not _requirements_satisfied():
         raise RuntimeError("RVC Next WebUI 依赖安装后仍不完整, 请检查上方的 Pip 输出")
     logger.info("RVC Next WebUI 依赖安装完成")
+
+
+def check_gradio_tunneling(
+    index_url: str | None = None,
+) -> None:
+    """检查 gradio-tunneling, 未安装时进行安装
+
+    gradio-tunneling 为可选依赖, 仅在使用 ``--share`` 启动内网穿透时需要
+
+    Args:
+        index_url (str | None):
+            安装时使用的 PyPI 镜像地址
+
+    Raises:
+        RuntimeError:
+            gradio-tunneling 安装失败时
+    """
+    logger.info("检查 gradio-tunneling 中")
+    if is_package_installed(GRADIO_TUNNELING_REQUIREMENT):
+        logger.info("gradio-tunneling 已安装")
+        return
+
+    logger.info("安装 gradio-tunneling 中")
+    args = [GRADIO_TUNNELING_REQUIREMENT]
+    if index_url:
+        args += ["--index-url", index_url]
+    pip_install(*args)
+    if not is_package_installed(GRADIO_TUNNELING_REQUIREMENT):
+        raise RuntimeError("gradio-tunneling 安装后仍未满足版本要求, 请检查上方的 Pip 输出")
+    logger.info("gradio-tunneling 安装完成")
 
 
 def check_environment(

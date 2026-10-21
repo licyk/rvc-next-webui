@@ -3,7 +3,7 @@
 使用 gradio-tunneling 库通过 Gradio 的共享服务器生成公网访问地址 (https://xxx.gradio.live), 有效期为 72 小时.
 
 隧道转发的请求会保留公网地址的 Host 请求头, 需要通过 ``RvcNextServer.allow_host()`` 允许该地址.
-gradio-tunneling 由依赖检查安装, 本模块需要在依赖检查完成后才能导入.
+gradio-tunneling 为可选依赖, 由 ``check_gradio_tunneling()`` 在使用 ``--share`` 时安装, 本模块需要在安装完成后才能导入.
 """
 
 import secrets
