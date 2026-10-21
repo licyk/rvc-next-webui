@@ -2,7 +2,7 @@
 
 # RVC Next WebUI
 
-_[RVC Next](https://github.com/licyk/rvc-next) 一键启动器_
+_基于 [RVC Next](https://github.com/licyk/rvc-next) 的语音转换、实时变声与音色训练 WebUI_
 
 </div>
 
@@ -18,11 +18,15 @@ _[RVC Next](https://github.com/licyk/rvc-next) 一键启动器_
 
 ## 简介
 
-RVC Next WebUI 会自动完成 RVC Next 的运行环境配置并启动 WebUI:
+RVC Next WebUI 基于 [RVC Next](https://github.com/licyk/rvc-next), 将音频转换、实时变声、人声分离、音色训练和模型管理集中在同一个网页界面中, 可用于语音换声、歌曲翻唱和个人音色制作。
 
-1. 检查 PyTorch, 未安装时根据显卡 (NVIDIA / AMD / Intel) 和系统自动安装对应版本的 PyTorch
-2. 检查并安装 `requirements.txt` 中的依赖 (包括 RVC Next)
-3. 启动 RVC Next WebUI, 并在浏览器中打开
+- **音频转换**: 使用 RVC 音色模型转换音频文件, 调整音高等参数, 并保存常用参数预设。
+- **实时变声**: 将麦克风等输入设备的声音实时转换为目标音色, 支持输出设备选择、监听和延迟测试。
+- **人声分离与翻唱**: 从音乐中分离人声和伴奏, 在一个任务中完成分离、音色转换和伴奏混合。
+- **音色训练**: 使用自己的录音训练 RVC 音色模型, 管理训练实验并查看任务进度。
+- **模型管理**: 导入、下载和管理音色及相关模型, 兼容已有的 RVC `.pth` 模型和 `.index` 索引文件。
+
+项目提供自动配置运行环境和启动 WebUI 的脚本, 首次运行时会安装所需的 PyTorch 和项目依赖。
 
 所有数据 (设置, 数据库, 模型, 实验和输出) 保存在项目的 `data` 文件夹中, Python 环境保存在 `venv` 文件夹中。
 
