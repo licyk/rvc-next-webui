@@ -1,2 +1,2 @@
-rvc-next[effects,tts]>=0.2.17
+rvc-next[effects,tts]>=0.2.16
 requests
